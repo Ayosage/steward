@@ -16,3 +16,4 @@ env var (document in `.env.example`).
 - [ ] Onboarding: welcome message on guildMemberAdd + `/rolemenu create` select-menu role self-assignment
 - [ ] `/announce schedule`: store in `scheduled_messages`, polling dispatcher loop + tests with fake timers
 - [ ] Message edit/delete mirroring to log channel
+- [ ] `/catan` game launcher: create a Meridian match via its `POST /matches` endpoint and post an embed with the join link — contract in `webdev/meridian/docs/DISCORD-LAUNCH.md` (env: `MERIDIAN_API_URL`, `MERIDIAN_LAUNCH_TOKEN`)
