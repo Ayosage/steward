@@ -4,7 +4,7 @@ Rules: work top to bottom, one task per PR, Vitest tests written first and
 passing before PR. Never commit tokens; bot token comes from `DISCORD_TOKEN`
 env var (document in `.env.example`).
 
-- [ ] Scaffold: TypeScript + Node 20 project, discord.js v14, ESLint/Prettier, Vitest, `.env.example`, README with local-run instructions
+- [x] Scaffold (partial, 2026-08-26): TypeScript + Node 20 project, discord.js v14, Vitest, `.env.example`, README with local-run instructions. Still open: ESLint/Prettier
 - [ ] Command + event handler loaders: auto-register files from `src/commands/` and `src/events/`; unit tests with mocked client
 - [ ] Drizzle + Postgres setup: `guild_configs`, `warnings`, `mod_actions`, `scheduled_messages` tables + migrations; test DB via docker-compose
 - [ ] `/config` command group: set log channel, automod toggles, welcome channel; persisted per guild
@@ -16,4 +16,4 @@ env var (document in `.env.example`).
 - [ ] Onboarding: welcome message on guildMemberAdd + `/rolemenu create` select-menu role self-assignment
 - [ ] `/announce schedule`: store in `scheduled_messages`, polling dispatcher loop + tests with fake timers
 - [ ] Message edit/delete mirroring to log channel
-- [ ] `/catan` game launcher: create a Meridian match via its `POST /matches` endpoint and post an embed with the join link — contract in `webdev/meridian/docs/DISCORD-LAUNCH.md` (env: `MERIDIAN_API_URL`, `MERIDIAN_LAUNCH_TOKEN`)
+- [x] `/catan` game launcher (2026-08-26): create a Meridian match via its `POST /matches` endpoint and post an embed with the join link — contract in `webdev/meridian/docs/DISCORD-LAUNCH.md` (env: `MERIDIAN_API_URL`, `MERIDIAN_LAUNCH_TOKEN`). Built ahead of the moderation tasks so Meridian can ship; command/loader pattern established in src/commands/
