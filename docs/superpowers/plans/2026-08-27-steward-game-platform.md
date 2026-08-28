@@ -973,7 +973,7 @@ git commit -m "feat: match and result embeds with Join button row"
 - Consumes: registry (Task 2), `GameLaunchError` (Task 3), `launchMatch` (Task 4), `matchEmbed`/`joinRow` (Task 6), `getDb` (Task 1), `gameRoles` table.
 - Produces: `interface Command { data: { name: string; toJSON(): RESTPostAPIChatInputApplicationCommandsJSONBody }; execute(i: ChatInputCommandInteraction): Promise<void>; autocomplete?(i: AutocompleteInteraction): Promise<void> }`; `interface PlayDeps { db: Db; launch: typeof launchMatch; publicBaseUrl: string }`; `defaultPlayDeps(): PlayDeps`; `runPlay(interaction, slug: string, deps: PlayDeps): Promise<void>`; `playCommand`, `catanCommand`, `gamesCommand`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/play-command.test.ts
@@ -1074,12 +1074,12 @@ describe('/catan alias', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/play-command.test.ts`
 Expected: FAIL — cannot resolve `../src/commands/play.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/commands/play.ts
@@ -1254,12 +1254,12 @@ Delete the superseded v0 files:
 git rm src/meridian.ts test/meridian.test.ts test/catan-command.test.ts
 ```
 
-- [ ] **Step 4: Run the full suite and lint**
+- [x] **Step 4: Run the full suite and lint**
 
 Run: `npm test && npm run lint`
 Expected: all PASS (deploy-commands still compiles — it only calls `data.toJSON()`).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A src test
