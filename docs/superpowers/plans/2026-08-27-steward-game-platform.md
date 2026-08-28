@@ -1596,7 +1596,7 @@ git commit -m "feat: idempotent result processing with anonymous-seat support"
 - Consumes: `processResult`, `resultSchema` (Task 9); `Db`, `MatchRow`, `SeatRow` (Task 1).
 - Produces: `interface WebhookDeps { db: Db; onResult: (match: MatchRow, seats: SeatRow[]) => Promise<void> }`; `createWebhookServer(deps: WebhookDeps): http.Server`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/webhook-server.test.ts
@@ -1677,12 +1677,12 @@ describe('webhook server', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/webhook-server.test.ts`
 Expected: FAIL — cannot resolve `../src/webhook-server.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/webhook-server.ts
@@ -1751,12 +1751,12 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse, deps:
 }
 ```
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/webhook-server.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/webhook-server.ts test/webhook-server.test.ts
