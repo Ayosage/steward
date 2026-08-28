@@ -539,7 +539,7 @@ git commit -m "feat: generic game launch client with callback contract"
 - Consumes: `Db`, `matches` table, `MatchRow` (Task 1); `GameDef` (Task 2); `createGameMatch`, `GameLaunchError`, `LaunchedMatch` (Task 3).
 - Produces: `newToken(prefix: string): string`; `interface LaunchMatchArgs { db: Db; game: GameDef; players: number; bots: number; guildId: string; channelId: string; createdByDiscordId: string; publicBaseUrl: string; createMatch?: typeof createGameMatch }`; `launchMatch(args: LaunchMatchArgs): Promise<MatchRow>`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/matches.test.ts
@@ -597,12 +597,12 @@ describe('launchMatch', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/matches.test.ts`
 Expected: FAIL — cannot resolve `../src/tokens.js` / `../src/matches.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/tokens.ts
@@ -662,12 +662,12 @@ export async function launchMatch(args: LaunchMatchArgs): Promise<MatchRow> {
 }
 ```
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/matches.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tokens.ts src/matches.ts test/matches.test.ts
