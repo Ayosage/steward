@@ -1278,7 +1278,7 @@ git commit -m "feat: /play generic launcher with autocomplete, /games, /catan as
 - Consumes: `mintSeat`, `MatchClosedError`, `MatchFullError` (Task 5); `getDb` (Task 1).
 - Produces: `isJoinButton(customId: string): boolean`; `handleJoinButton(interaction: ButtonInteraction, db?: Db): Promise<void>`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/join-button.test.ts
@@ -1341,12 +1341,12 @@ describe('join button', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/join-button.test.ts`
 Expected: FAIL — cannot resolve `../src/interactions/join.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/interactions/join.ts
@@ -1383,12 +1383,12 @@ export async function handleJoinButton(interaction: ButtonInteraction, db: Db = 
 }
 ```
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/join-button.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/interactions/join.ts test/join-button.test.ts
