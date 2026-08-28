@@ -82,14 +82,14 @@ docs/GAME-ADAPTER.md         # the v1 adapter contract (published form)
 
 Note two deliberate additions vs the spec's table sketch: `matches.players` and `matches.bots` (needed to render the embed and cap Join minting — the spec's command surface requires them).
 
-- [ ] **Step 1: Install dependencies**
+- [x] **Step 1: Install dependencies**
 
 ```bash
 npm i drizzle-orm pg zod
 npm i -D drizzle-kit @electric-sql/pglite @types/pg
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```ts
 // test/db.test.ts
@@ -138,12 +138,12 @@ describe('db schema', () => {
 })
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `npx vitest run test/db.test.ts`
 Expected: FAIL — cannot resolve `../src/db/schema.js` / `./helpers/db.js`.
 
-- [ ] **Step 4: Write schema, db module, config, and test helper**
+- [x] **Step 4: Write schema, db module, config, and test helper**
 
 ```ts
 // src/db/schema.ts
@@ -274,17 +274,17 @@ Add scripts to `package.json` (`"scripts"` block):
 "db:migrate": "drizzle-kit migrate"
 ```
 
-- [ ] **Step 5: Generate the initial migration**
+- [x] **Step 5: Generate the initial migration**
 
 Run: `npm run db:generate`
 Expected: a new SQL file under `drizzle/` (plus `drizzle/meta/`). Open it and confirm it creates all five tables.
 
-- [ ] **Step 6: Run tests and lint to verify they pass**
+- [x] **Step 6: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/db.test.ts && npm run lint`
 Expected: 2 PASS, tsc clean.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json package-lock.json drizzle.config.ts drizzle src/db test/helpers/db.ts test/db.test.ts
