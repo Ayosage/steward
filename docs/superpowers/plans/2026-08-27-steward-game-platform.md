@@ -831,7 +831,7 @@ git commit -m "feat: seat minting with reuse, capacity, and lifecycle activation
 - Consumes: `GameDef` (Task 2), `MatchRow`/`SeatRow` (Task 1).
 - Produces: `matchEmbed(game: GameDef, match: MatchRow): EmbedBuilder`; `joinRow(matchId: number): ActionRowBuilder<ButtonBuilder>` (button customId `join:<matchId>`); `resultEmbed(game: GameDef, match: MatchRow, seatRows: SeatRow[]): EmbedBuilder`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/embeds.test.ts
@@ -889,12 +889,12 @@ describe('resultEmbed', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/embeds.test.ts`
 Expected: FAIL — cannot resolve `../src/embeds.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/embeds.ts
@@ -947,12 +947,12 @@ export function resultEmbed(game: GameDef, match: MatchRow, seatRows: SeatRow[])
 }
 ```
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/embeds.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/embeds.ts test/embeds.test.ts
