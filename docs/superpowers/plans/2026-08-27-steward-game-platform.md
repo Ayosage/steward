@@ -686,7 +686,7 @@ git commit -m "feat: launchMatch service with per-match callback tokens"
 - Consumes: Task 4's `matches.ts`, `seats` table, `SeatRow`.
 - Produces (added to `src/matches.ts`): `class MatchClosedError extends Error`; `class MatchFullError extends Error`; `personalJoinUrl(joinUrl: string, seatToken: string): string`; `interface MintedSeat { seat: SeatRow; personalUrl: string; reused: boolean }`; `mintSeat(db: Db, match: MatchRow, user: { id: string; displayName: string }): Promise<MintedSeat>`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/seats.test.ts
@@ -754,12 +754,12 @@ describe('mintSeat', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/seats.test.ts`
 Expected: FAIL — `mintSeat` not exported.
 
-- [ ] **Step 3: Write the implementation (append to `src/matches.ts`)**
+- [x] **Step 3: Write the implementation (append to `src/matches.ts`)**
 
 Add imports at the top of `src/matches.ts`: `import { and, eq } from 'drizzle-orm'` and extend the schema import to `import { matches, seats, type MatchRow, type SeatRow } from './db/schema.js'`. Then append:
 
@@ -807,12 +807,12 @@ export async function mintSeat(
 }
 ```
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/seats.test.ts test/matches.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/matches.ts test/seats.test.ts
