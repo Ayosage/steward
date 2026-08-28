@@ -303,7 +303,7 @@ git commit -m "feat: postgres schema via drizzle + pglite test harness"
 - Consumes: nothing.
 - Produces: `interface GameDef { slug: string; name: string; launchUrl: string; tokenEnvVar: string; minPlayers: number; maxPlayers: number; maxBots: number; defaultPlayers: number }`; `games: readonly GameDef[]`; `getGame(slug: string): GameDef | undefined`; `validateLaunch(game: GameDef, players: number, bots: number): string | null`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/games.test.ts
@@ -331,12 +331,12 @@ describe('game registry', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/games.test.ts`
 Expected: FAIL — cannot resolve `../src/games.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/games.ts
@@ -379,12 +379,12 @@ export function validateLaunch(game: GameDef, players: number, bots: number): st
 }
 ```
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/games.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/games.ts test/games.test.ts
