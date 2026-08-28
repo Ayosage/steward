@@ -2471,7 +2471,7 @@ git commit -m "feat: /roles setup with self-assign select menu"
 
 Sweep policy (from spec + one pragmatic backstop): `pending` matches past `expiresAt` → `expired` (nobody joined); `active` matches more than 24h past `expiresAt` → `expired` (game died without a callback — the webhook remains the source of truth and a late `completed` still wins via Task 9).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 // test/scheduler.test.ts
@@ -2606,12 +2606,12 @@ describe('/gamenight', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run test/scheduler.test.ts test/gamenight.test.ts`
 Expected: FAIL — modules missing.
 
-- [ ] **Step 3: Write the implementations**
+- [x] **Step 3: Write the implementations**
 
 ```ts
 // src/scheduler.ts
@@ -2782,12 +2782,12 @@ export const gamenightCommand = {
 
 Register `gamenightCommand` in `src/commands/index.ts`.
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/scheduler.test.ts test/gamenight.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/scheduler.ts src/commands/gamenight.ts src/commands/index.ts test/scheduler.test.ts test/gamenight.test.ts
