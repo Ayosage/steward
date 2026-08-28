@@ -1776,7 +1776,7 @@ git commit -m "feat: result webhook server (persist, 2xx, best-effort posting)"
 - Consumes: `Db`, `matches`, `seats` (Task 1); registry + `playCommand.autocomplete` pattern (Task 7).
 - Produces: `interface GameStats { gameSlug: string; games: number; wins: number; winRate: number }`; `playerStats(db: Db, guildId: string, discordUserId: string, gameSlug?: string): Promise<GameStats[]>`; `interface LeaderRow { discordUserId: string; games: number; wins: number; winRate: number }`; `leaderboard(db: Db, guildId: string, gameSlug: string, limit?: number): Promise<LeaderRow[]>`; `statsCommand`, `leaderboardCommand` (both take optional `{ db }` deps like `gamesCommand`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/stats.test.ts
@@ -1846,12 +1846,12 @@ describe('leaderboard', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/stats.test.ts`
 Expected: FAIL — cannot resolve `../src/stats.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/stats.ts
@@ -2028,12 +2028,12 @@ export const commands: ReadonlyMap<string, Command> = new Map<string, Command>(
 )
 ```
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/stats.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/stats.ts src/commands/stats.ts src/commands/leaderboard.ts src/commands/index.ts test/stats.test.ts
