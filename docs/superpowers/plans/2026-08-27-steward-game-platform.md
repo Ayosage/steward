@@ -405,7 +405,7 @@ git commit -m "feat: static game registry with launch validation"
 
 This generalizes `src/meridian.ts` (leave meridian.ts in place until Task 7 so `/catan` keeps compiling). The v1 body drops `seatNames` and adds the per-match `callback` (spec: seats-at-launch is vestigial; identity binding happens via join links).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/game-client.test.ts
@@ -451,12 +451,12 @@ describe('createGameMatch', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/game-client.test.ts`
 Expected: FAIL — cannot resolve `../src/game-client.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/game-client.ts
@@ -515,12 +515,12 @@ export async function createGameMatch(
 }
 ```
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/game-client.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game-client.ts test/game-client.test.ts
