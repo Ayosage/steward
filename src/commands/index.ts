@@ -8,6 +8,7 @@ import { configCommand } from './config.js'
 import { gamesCommand } from './games.js'
 import { leaderboardCommand } from './leaderboard.js'
 import { playCommand } from './play.js'
+import { rolesCommand } from './roles.js'
 import { statsCommand } from './stats.js'
 
 export interface Command {
@@ -18,7 +19,7 @@ export interface Command {
 
 /** All slash commands, keyed by name. New commands register here. */
 export const commands: ReadonlyMap<string, Command> = new Map<string, Command>(
-  [playCommand, catanCommand, gamesCommand, statsCommand, leaderboardCommand, configCommand].map(
+  [playCommand, catanCommand, gamesCommand, statsCommand, leaderboardCommand, configCommand, rolesCommand].map(
     (c) => [c.data.name, c] as const,
   ),
 )

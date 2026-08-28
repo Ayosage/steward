@@ -2263,7 +2263,7 @@ git commit -m "feat: /config match-log and best-effort result posting with mirro
 
 Behavior: `setup` finds a guild role named after each registry game (creating it if missing), upserts `game_roles`, and posts a single-pick select menu. Picking a game toggles that role on the member with an ephemeral confirmation. Requires the bot's own role to sit above the game roles — document in README (Task 15).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/roles.test.ts
@@ -2345,12 +2345,12 @@ describe('role select', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/roles.test.ts`
 Expected: FAIL — modules missing.
 
-- [ ] **Step 3: Write the implementations**
+- [x] **Step 3: Write the implementations**
 
 ```ts
 // src/commands/roles.ts
@@ -2444,12 +2444,12 @@ export async function handleRoleSelect(interaction: StringSelectMenuInteraction,
 
 Register `rolesCommand` in `src/commands/index.ts`.
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/roles.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/commands/roles.ts src/interactions/roles.ts src/commands/index.ts test/roles.test.ts
