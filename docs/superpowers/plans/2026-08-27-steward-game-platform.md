@@ -1407,7 +1407,7 @@ git commit -m "feat: Join button mints ephemeral personal seat links"
 - Consumes: `Db`, `matches`, `seats`, `MatchRow`, `SeatRow` (Task 1); `newToken` (Task 4).
 - Produces: `resultSchema` (zod); `type ResultReport = z.infer<typeof resultSchema>`; `type ProcessOutcome = { kind: 'ok'; match: MatchRow; seats: SeatRow[] } | { kind: 'duplicate' } | { kind: 'unknown' } | { kind: 'unauthorized' }`; `processResult(db: Db, bearerToken: string, report: ResultReport): Promise<ProcessOutcome>`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // test/results.test.ts
@@ -1489,12 +1489,12 @@ describe('processResult', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run test/results.test.ts`
 Expected: FAIL — cannot resolve `../src/results.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/results.ts
@@ -1572,12 +1572,12 @@ export async function processResult(db: Db, bearerToken: string, report: ResultR
 }
 ```
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/results.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/results.ts test/results.test.ts
