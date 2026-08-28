@@ -4,6 +4,7 @@ import type {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js'
 import { catanCommand } from './catan.js'
+import { configCommand } from './config.js'
 import { gamesCommand } from './games.js'
 import { leaderboardCommand } from './leaderboard.js'
 import { playCommand } from './play.js'
@@ -17,5 +18,7 @@ export interface Command {
 
 /** All slash commands, keyed by name. New commands register here. */
 export const commands: ReadonlyMap<string, Command> = new Map<string, Command>(
-  [playCommand, catanCommand, gamesCommand, statsCommand, leaderboardCommand].map((c) => [c.data.name, c] as const),
+  [playCommand, catanCommand, gamesCommand, statsCommand, leaderboardCommand, configCommand].map(
+    (c) => [c.data.name, c] as const,
+  ),
 )

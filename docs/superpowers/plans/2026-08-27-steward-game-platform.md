@@ -2053,7 +2053,7 @@ git commit -m "feat: /stats and /leaderboard over derived aggregations"
 - Consumes: `guildConfig` table (Task 1), `resultEmbed` (Task 6), `getGame` (Task 2).
 - Produces: `configCommand` (admin, subcommand `match-log` with required channel option); `makeResultPoster(client: Pick<Client, 'channels'>, db: Db): (match: MatchRow, seats: SeatRow[]) => Promise<void>` — this is the `onResult` given to the webhook server in Task 15.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 // test/config-command.test.ts
@@ -2149,12 +2149,12 @@ describe('result poster', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run test/config-command.test.ts test/result-poster.test.ts`
 Expected: FAIL — modules missing.
 
-- [ ] **Step 3: Write the implementations**
+- [x] **Step 3: Write the implementations**
 
 ```ts
 // src/commands/config.ts
@@ -2236,12 +2236,12 @@ export function makeResultPoster(client: Pick<Client, 'channels'>, db: Db) {
 
 Register `configCommand` in `src/commands/index.ts` the same way as Task 11.
 
-- [ ] **Step 4: Run tests and lint to verify they pass**
+- [x] **Step 4: Run tests and lint to verify they pass**
 
 Run: `npx vitest run test/config-command.test.ts test/result-poster.test.ts && npm run lint`
 Expected: PASS, tsc clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/commands/config.ts src/result-poster.ts src/commands/index.ts test/config-command.test.ts test/result-poster.test.ts
