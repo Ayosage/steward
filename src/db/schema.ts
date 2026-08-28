@@ -1,4 +1,15 @@
-import { boolean, integer, jsonb, pgTable, primaryKey, serial, text, timestamp } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgTable,
+  primaryKey,
+  serial,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core'
 
 export const matches = pgTable('matches', {
   id: serial('id').primaryKey(),
@@ -19,18 +30,27 @@ export const matches = pgTable('matches', {
   finishedAt: timestamp('finished_at', { withTimezone: true }),
 })
 
-export const seats = pgTable('seats', {
-  id: serial('id').primaryKey(),
-  matchId: integer('match_id')
-    .notNull()
-    .references(() => matches.id),
-  seatToken: text('seat_token').notNull().unique(),
-  discordUserId: text('discord_user_id'), // null = anonymous seat
-  displayName: text('display_name'),
-  placement: integer('placement'),
-  winner: boolean('winner'),
-  stats: jsonb('stats'),
-})
+export const seats = pgTable(
+  'seats',
+  {
+    id: serial('id').primaryKey(),
+    matchId: integer('match_id')
+      .notNull()
+      .references(() => matches.id),
+    seatToken: text('seat_token').notNull().unique(),
+    discordUserId: text('discord_user_id'), // null = anonymous seat
+    displayName: text('display_name'),
+    placement: integer('placement'),
+    winner: boolean('winner'),
+    stats: jsonb('stats'),
+  },
+  (t) => [
+    // one seat per discord user per match (anonymous seats exempt)
+    uniqueIndex('seats_match_user_unique')
+      .on(t.matchId, t.discordUserId)
+      .where(sql`${t.discordUserId} is not null`),
+  ],
+)
 
 export const guildConfig = pgTable('guild_config', {
   guildId: text('guild_id').primaryKey(),

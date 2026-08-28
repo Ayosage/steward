@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "seats_match_user_unique" ON "seats" USING btree ("match_id","discord_user_id") WHERE "seats"."discord_user_id" is not null;
