@@ -2806,7 +2806,7 @@ git commit -m "feat: expiry sweep + /gamenight scheduled announcements"
 **Interfaces:**
 - Consumes: everything above. No new exports.
 
-- [ ] **Step 1: Write the failing end-to-end test**
+- [x] **Step 1: Write the failing end-to-end test**
 
 ```ts
 // test/e2e.test.ts — /play → Join → result webhook → embeds + stats
@@ -2875,12 +2875,12 @@ describe('end to end', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test**
+- [x] **Step 2: Run the test**
 
 Run: `npx vitest run test/e2e.test.ts`
 Expected: PASS already (it composes tested pieces — if it fails, fix the integration seam it exposes before continuing).
 
-- [ ] **Step 3: Rewrite `src/index.ts` wiring**
+- [x] **Step 3: Rewrite `src/index.ts` wiring**
 
 ```ts
 // src/index.ts
@@ -2943,7 +2943,7 @@ startScheduler({
 void client.login(token)
 ```
 
-- [ ] **Step 4: Update `.env.example` (append)**
+- [x] **Step 4: Update `.env.example` (append)**
 
 ```bash
 # Postgres connection (drizzle). Run `npm run db:migrate` after changing schema.
@@ -2954,7 +2954,7 @@ WEBHOOK_PORT=8787
 PUBLIC_BASE_URL=http://localhost:8787
 ```
 
-- [ ] **Step 5: Write `docs/GAME-ADAPTER.md`**
+- [x] **Step 5: Write `docs/GAME-ADAPTER.md`**
 
 Publish the adapter contract from the design spec as a standalone doc — copy sections "Launch", "Per-player join links", and "Results" from `docs/superpowers/specs/2026-08-26-steward-game-platform-design.md` (§ "The game-adapter contract (v1)") verbatim, prefaced by:
 
@@ -2968,12 +2968,12 @@ superseded by this document and keeps only Catan-specific notes.
 
 Also update `README.md`: one paragraph on what Steward is now (game platform), the command surface list, env vars, `npm run db:migrate` + `npm run deploy-commands` setup steps, and a note that `/roles setup` needs the bot's role above the game roles plus Manage Roles permission.
 
-- [ ] **Step 6: Full verification**
+- [x] **Step 6: Full verification**
 
 Run: `npm test && npm run lint`
 Expected: entire suite PASS, tsc clean.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/index.ts .env.example README.md docs/GAME-ADAPTER.md test/e2e.test.ts
