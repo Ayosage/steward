@@ -1,31 +1,53 @@
 # Steward
 
-Discord server-management bot — TypeScript, discord.js v14.
-Currently shipped: the `/catan` Meridian game launcher. Moderation, automod,
-onboarding, announcements, and audit logging are planned (see the docs).
+Discord game platform bot — TypeScript, discord.js v14, Postgres via Drizzle.
+Steward launches games from a registry (`/play` + a Join button that hands each
+player a personal seat link), receives result webhooks from games, and keeps
+per-server stats, leaderboards, game roles, and game-night announcements.
+Any game implementing the adapter contract can join the library:
+[docs/GAME-ADAPTER.md](docs/GAME-ADAPTER.md).
 
 - Scope + architecture: [docs/BRIEF.md](docs/BRIEF.md)
-- Task plan: [docs/PLAN.md](docs/PLAN.md)
+- Design spec: [docs/superpowers/specs/2026-08-26-steward-game-platform-design.md](docs/superpowers/specs/2026-08-26-steward-game-platform-design.md)
+
+## Commands
+
+Playing:
+- `/play game:<slug> players:<n> bots:<n>` — generic launcher (autocompleted registry)
+- `/catan players:<3-8> bots:<0-7>` — alias for `/play game:catan`
+- **Join button** — ephemeral personal seat link (mints or reuses your seat)
+- `/games` — the library: name, player range, role mention if configured
+
+Stats:
+- `/stats [user] [game]` — games, wins, win rate per game
+- `/leaderboard game:<slug>` — top players by wins (win-rate tiebreak)
+
+Management (admin = Manage Server):
+- `/config match-log channel:<#channel>` — archive channel for result embeds
+- `/roles setup` — create game roles + post the self-assign menu
+- `/gamenight schedule|list|cancel` — recurring announcements that ping the game role
 
 ## Local run
 
 ```bash
 npm install
-cp .env.example .env   # fill in DISCORD_TOKEN, DISCORD_APP_ID, MERIDIAN_* values
+cp .env.example .env     # fill in DISCORD_TOKEN, DISCORD_APP_ID, DATABASE_URL, game tokens
+npm run db:migrate       # apply drizzle migrations to Postgres
 npm run deploy-commands  # register slash commands (set DISCORD_GUILD_ID for instant guild scope)
 npm run dev
 ```
 
-## /catan
+Env vars (see `.env.example`): `DISCORD_TOKEN`, `DISCORD_APP_ID`,
+`DISCORD_GUILD_ID` (optional), `DATABASE_URL`, `WEBHOOK_PORT`,
+`PUBLIC_BASE_URL`, plus per-game launch settings (`MERIDIAN_API_URL`,
+`MERIDIAN_LAUNCH_TOKEN`).
 
-`/catan players:<3-8> bots:<0-7>` creates a Meridian match via its
-`POST /matches` endpoint and posts an embed with the join link and room code.
-Contract: `webdev/meridian/docs/DISCORD-LAUNCH.md`. Needs `MERIDIAN_API_URL`
-and `MERIDIAN_LAUNCH_TOKEN` in the environment.
+Note: `/roles setup` needs the bot to have Manage Roles and its own role
+positioned **above** the game roles it creates, or role toggling will fail.
 
 ## Tests
 
 ```bash
-npm test      # vitest, discord.js interactions mocked
+npm test      # vitest; DB tests run on in-process Postgres (PGlite), Discord mocked
 npm run lint  # tsc --noEmit
 ```

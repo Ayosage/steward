@@ -1,12 +1,33 @@
-import type { ChatInputCommandInteraction, SlashCommandOptionsOnlyBuilder } from 'discord.js'
+import type {
+  AutocompleteInteraction,
+  ChatInputCommandInteraction,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
+} from 'discord.js'
 import { catanCommand } from './catan.js'
+import { configCommand } from './config.js'
+import { gamenightCommand } from './gamenight.js'
+import { gamesCommand } from './games.js'
+import { leaderboardCommand } from './leaderboard.js'
+import { playCommand } from './play.js'
+import { rolesCommand } from './roles.js'
+import { statsCommand } from './stats.js'
 
 export interface Command {
-  data: SlashCommandOptionsOnlyBuilder
+  data: { name: string; toJSON(): RESTPostAPIChatInputApplicationCommandsJSONBody }
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>
+  autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>
 }
 
 /** All slash commands, keyed by name. New commands register here. */
-export const commands: ReadonlyMap<string, Command> = new Map<string, Command>([
-  [catanCommand.data.name, catanCommand],
-])
+export const commands: ReadonlyMap<string, Command> = new Map<string, Command>(
+  [
+    playCommand,
+    catanCommand,
+    gamesCommand,
+    statsCommand,
+    leaderboardCommand,
+    configCommand,
+    rolesCommand,
+    gamenightCommand,
+  ].map((c) => [c.data.name, c] as const),
+)
