@@ -27,7 +27,7 @@ describe('registerCommands', () => {
   it('sends every command definition as the body', async () => {
     const { rest, put } = fakeRest()
     await registerCommands(rest, 'app1')
-    const body = put.mock.calls[0][1].body as { name: string }[]
+    const body = put.mock.calls[0]![1].body as { name: string }[]
     expect(body.map((c) => c.name).sort()).toEqual([...commands.keys()].sort())
   })
 })

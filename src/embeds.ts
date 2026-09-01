@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js'
-import type { MatchRow, SeatRow } from './db/schema.js'
+import type { LobbyMemberRow, LobbyRow, MatchRow, SeatRow } from './db/schema.js'
 import type { GameDef } from './games.js'
 
 export function matchEmbed(game: GameDef, match: MatchRow): EmbedBuilder {
@@ -44,4 +44,42 @@ export function resultEmbed(game: GameDef, match: MatchRow, seatRows: SeatRow[])
     .setDescription(lines.join('\n') || 'No seat results reported.')
     .addFields({ name: 'Room code', value: `\`${match.code}\``, inline: true })
     .setColor(completed ? 0x3f9e58 : 0x8f6e2c)
+}
+
+export function lobbyEmbed(game: GameDef, lobby: LobbyRow, members: LobbyMemberRow[]): EmbedBuilder {
+  const lines = members.map(
+    (m) => `${m.discordUserId === lobby.hostDiscordId ? '👑 ' : ''}<@${m.discordUserId}>`,
+  )
+  const seats = members.length + lobby.bots
+  return new EmbedBuilder()
+    .setTitle(`${game.name} lobby`)
+    .setDescription('Click **Join** to grab a seat. The host adds bots and starts the game.')
+    .addFields(
+      { name: `Players (${members.length})`, value: lines.join('\n') || '—', inline: true },
+      { name: 'Bots', value: String(lobby.bots), inline: true },
+      { name: 'Seats', value: `${seats}/${game.maxPlayers} (min ${game.minPlayers})`, inline: true },
+    )
+    .setColor(0x2c6e8f)
+}
+
+export function lobbyRows(lobbyId: number): ActionRowBuilder<ButtonBuilder>[] {
+  return [
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder().setCustomId(`lobby:${lobbyId}:join`).setLabel('Join / Leave').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId(`lobby:${lobbyId}:botadd`).setLabel('+ Bot').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId(`lobby:${lobbyId}:botsub`).setLabel('− Bot').setStyle(ButtonStyle.Secondary),
+    ),
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder().setCustomId(`lobby:${lobbyId}:start`).setLabel('Start').setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId(`lobby:${lobbyId}:givehost`).setLabel('Give Host').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId(`lobby:${lobbyId}:cancel`).setLabel('Cancel').setStyle(ButtonStyle.Danger),
+    ),
+  ]
+}
+
+export function lobbyClosedEmbed(game: GameDef, status: 'cancelled' | 'expired'): EmbedBuilder {
+  return new EmbedBuilder()
+    .setTitle(`${game.name} lobby ${status}`)
+    .setDescription(status === 'cancelled' ? 'The host cancelled this lobby.' : 'This lobby sat idle too long.')
+    .setColor(0x8f6e2c)
 }

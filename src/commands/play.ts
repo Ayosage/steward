@@ -4,27 +4,22 @@ import {
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
 } from 'discord.js'
+import { eq } from 'drizzle-orm'
 import { getDb, type Db } from '../db/index.js'
-import { joinRow, matchEmbed } from '../embeds.js'
-import { GameLaunchError } from '../game-client.js'
-import { games, getGame, validateLaunch } from '../games.js'
-import { launchMatch } from '../matches.js'
+import { lobbies } from '../db/schema.js'
+import { lobbyEmbed, lobbyRows } from '../embeds.js'
+import { games, getGame } from '../games.js'
+import { createLobby } from '../lobbies.js'
 
 export interface PlayDeps {
   db: Db
-  launch: typeof launchMatch
-  publicBaseUrl: string
 }
 
 export function defaultPlayDeps(): PlayDeps {
-  return {
-    db: getDb(),
-    launch: launchMatch,
-    publicBaseUrl: process.env.PUBLIC_BASE_URL ?? 'http://localhost:8787',
-  }
+  return { db: getDb() }
 }
 
-/** Shared launch path for /play and per-game aliases like /catan. */
+/** Shared lobby-open path for /play and per-game aliases like /catan. */
 export async function runPlay(
   interaction: ChatInputCommandInteraction,
   slug: string,
@@ -39,39 +34,25 @@ export async function runPlay(
     await interaction.reply({ content: 'This command only works in a server channel.', flags: MessageFlags.Ephemeral })
     return
   }
-  const players = interaction.options.getInteger('players') ?? game.defaultPlayers
-  const bots = interaction.options.getInteger('bots') ?? 0
-  const invalid = validateLaunch(game, players, bots)
-  if (invalid) {
-    await interaction.reply({ content: `Could not launch: ${invalid}`, flags: MessageFlags.Ephemeral })
-    return
-  }
-  await interaction.deferReply()
-  try {
-    const match = await deps.launch({
-      db: deps.db,
-      game,
-      players,
-      bots,
-      guildId: interaction.guildId,
-      channelId: interaction.channelId,
-      createdByDiscordId: interaction.user.id,
-      publicBaseUrl: deps.publicBaseUrl,
-    })
-    await interaction.editReply({ embeds: [matchEmbed(game, match)], components: [joinRow(match.id)] })
-  } catch (e) {
-    const reason = e instanceof GameLaunchError ? e.message : 'unexpected launch failure'
-    await interaction.editReply({ content: `Could not launch the match: ${reason}` })
-  }
+  const view = await createLobby(deps.db, {
+    game,
+    guildId: interaction.guildId,
+    channelId: interaction.channelId,
+    host: { id: interaction.user.id, displayName: interaction.user.displayName },
+  })
+  const message = await interaction.reply({
+    embeds: [lobbyEmbed(game, view.lobby, view.members)],
+    components: lobbyRows(view.lobby.id),
+    fetchReply: true,
+  })
+  await deps.db.update(lobbies).set({ messageId: message.id }).where(eq(lobbies.id, view.lobby.id))
 }
 
 export const playCommand = {
   data: new SlashCommandBuilder()
     .setName('play')
-    .setDescription('Launch a game from the library')
-    .addStringOption((o) => o.setName('game').setDescription('Which game').setRequired(true).setAutocomplete(true))
-    .addIntegerOption((o) => o.setName('players').setDescription('Number of seats (per-game bounds)'))
-    .addIntegerOption((o) => o.setName('bots').setDescription('Bot seats (default 0)')),
+    .setDescription('Open a game lobby from the library')
+    .addStringOption((o) => o.setName('game').setDescription('Which game').setRequired(true).setAutocomplete(true)),
 
   async execute(interaction: ChatInputCommandInteraction, deps: PlayDeps = defaultPlayDeps()): Promise<void> {
     await runPlay(interaction, interaction.options.getString('game', true), deps)
