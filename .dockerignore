@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.claude
+.env
+.env.*
+!.env.example
+docs
+test
+*.md
+.DS_Store
+fly.toml
