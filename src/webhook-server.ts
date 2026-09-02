@@ -26,6 +26,7 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse, deps:
     res.writeHead(status, { 'content-type': 'application/json' })
     res.end(JSON.stringify(body))
   }
+  if (req.method === 'GET' && req.url === '/healthz') return send(200, { ok: true })
   if (req.method !== 'POST' || req.url !== '/webhooks/results') return send(404, { error: 'not found' })
   const auth = req.headers.authorization ?? ''
   if (!auth.startsWith('Bearer ')) return send(401, { error: 'missing bearer token' })

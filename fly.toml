@@ -1,0 +1,30 @@
+# Fly app for Steward (Discord bot + result-webhook server in one process).
+# Deploy from the repo root: fly deploy
+# Secrets (never in this file): fly secrets set DISCORD_TOKEN=... DISCORD_APP_ID=... DATABASE_URL=... MERIDIAN_API_URL=... MERIDIAN_LAUNCH_TOKEN=... PUBLIC_BASE_URL=...
+# See docs/DEPLOY.md for the full walkthrough.
+app = "steward"
+primary_region = "ewr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  WEBHOOK_PORT = "8787"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = "off"   # a Discord bot must stay connected to the gateway
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/healthz"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "15s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

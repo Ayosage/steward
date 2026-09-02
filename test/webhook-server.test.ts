@@ -41,6 +41,14 @@ const GOOD = JSON.stringify({
 })
 
 describe('webhook server', () => {
+  it('answers GET /healthz with 200 for platform health checks', async () => {
+    const { base } = await setup()
+    const res = await fetch(`${base}/healthz`)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    expect((await fetch(`${base}/healthz`, { method: 'POST' })).status).toBe(404)
+  })
+
   it('persists, returns 200, then fires onResult best-effort', async () => {
     const { onResult, base } = await setup()
     const res = await post(base, 'cb_good', GOOD)
