@@ -2,7 +2,7 @@
 # Deploy from the repo root: fly deploy
 # Secrets (never in this file): fly secrets set DISCORD_TOKEN=... DISCORD_APP_ID=... DATABASE_URL=... MERIDIAN_API_URL=... MERIDIAN_LAUNCH_TOKEN=... PUBLIC_BASE_URL=...
 # See docs/DEPLOY.md for the full walkthrough.
-app = "steward"
+app = "steward-bot"
 primary_region = "ewr"
 
 [build]

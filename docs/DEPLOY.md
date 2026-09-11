@@ -20,7 +20,7 @@ From the repo root:
 
 ```bash
 fly auth login
-fly launch --no-deploy --copy-config --name steward --region ewr
+fly launch --no-deploy --copy-config --name steward-bot --region ewr
 ```
 
 `--copy-config` keeps the committed `fly.toml` (autostop off, one machine,
@@ -34,7 +34,7 @@ Option A, Fly Postgres (same private network, no TLS config needed):
 
 ```bash
 fly postgres create --name steward-db --region ewr --vm-size shared-cpu-1x --initial-cluster-size 1
-fly postgres attach steward-db --app steward
+fly postgres attach steward-db --app steward-bot
 ```
 
 `attach` sets `DATABASE_URL` as a secret on the app automatically.
@@ -43,7 +43,7 @@ Option B, Neon / Supabase / any hosted Postgres: create a database, copy its
 connection string (Neon: use the pooled URL with `?sslmode=require`), then:
 
 ```bash
-fly secrets set --app steward DATABASE_URL='postgres://user:pass@host/steward?sslmode=require'
+fly secrets set --app steward-bot DATABASE_URL='postgres://user:pass@host/steward?sslmode=require'
 ```
 
 Migrations run on container start, so a fresh database is fine.
@@ -55,12 +55,12 @@ Generate one shared launch token and set it on **both** apps:
 ```bash
 LAUNCH_TOKEN=$(openssl rand -hex 32)
 fly secrets set --app meridian-server LAUNCH_TOKEN="$LAUNCH_TOKEN"
-fly secrets set --app steward \
+fly secrets set --app steward-bot \
   DISCORD_TOKEN='<bot token>' \
   DISCORD_APP_ID='<application id>' \
   MERIDIAN_API_URL='https://meridian-server.fly.dev' \
   MERIDIAN_LAUNCH_TOKEN="$LAUNCH_TOKEN" \
-  PUBLIC_BASE_URL='https://steward.fly.dev'
+  PUBLIC_BASE_URL='https://steward-bot.fly.dev'
 ```
 
 `PUBLIC_BASE_URL` is what games are told to call back
@@ -77,7 +77,7 @@ fly deploy
 Watch the first boot:
 
 ```bash
-fly logs --app steward
+fly logs --app steward-bot
 ```
 
 A healthy start looks like:
@@ -92,8 +92,8 @@ registered 8 command(s) (global)
 Then confirm the health check from outside:
 
 ```bash
-curl https://steward.fly.dev/healthz     # {"ok":true}
-fly status --app steward                 # one machine, state "started", checks passing
+curl https://steward-bot.fly.dev/healthz     # {"ok":true}
+fly status --app steward-bot                 # one machine, state "started", checks passing
 ```
 
 ## 5. Invite the bot to a server
@@ -126,13 +126,13 @@ commands would only exist in that one guild.
 
 ```bash
 fly deploy                      # ship a new build (migrations run on boot)
-fly logs --app steward          # tail logs
-fly ssh console --app steward   # shell into the machine
-fly secrets list --app steward  # names only, values are never shown
-fly scale memory 512 --app steward   # if the 256 MB default gets tight
+fly logs --app steward-bot          # tail logs
+fly ssh console --app steward-bot   # shell into the machine
+fly secrets list --app steward-bot  # names only, values are never shown
+fly scale memory 512 --app steward-bot   # if the 256 MB default gets tight
 ```
 
-Rolling back: `fly releases --app steward` then `fly deploy --image <previous image ref>`.
+Rolling back: `fly releases --app steward-bot` then `fly deploy --image <previous image ref>`.
 
 ## Local Docker check
 
