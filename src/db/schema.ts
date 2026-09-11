@@ -52,34 +52,6 @@ export const seats = pgTable(
   ],
 )
 
-export const lobbies = pgTable('lobbies', {
-  id: serial('id').primaryKey(),
-  guildId: text('guild_id').notNull(),
-  channelId: text('channel_id').notNull(),
-  gameSlug: text('game_slug').notNull(),
-  hostDiscordId: text('host_discord_id').notNull(),
-  bots: integer('bots').notNull().default(0),
-  status: text('status', { enum: ['open', 'started', 'cancelled', 'expired'] })
-    .notNull()
-    .default('open'),
-  matchId: integer('match_id').references(() => matches.id), // set when started
-  messageId: text('message_id'), // the lobby embed message, set right after posting
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-})
-
-export const lobbyMembers = pgTable(
-  'lobby_members',
-  {
-    lobbyId: integer('lobby_id')
-      .notNull()
-      .references(() => lobbies.id),
-    discordUserId: text('discord_user_id').notNull(),
-    displayName: text('display_name'),
-    joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [primaryKey({ columns: [t.lobbyId, t.discordUserId] })],
-)
-
 export const guildConfig = pgTable('guild_config', {
   guildId: text('guild_id').primaryKey(),
   matchLogChannelId: text('match_log_channel_id'),
@@ -106,8 +78,6 @@ export const scheduledAnnouncements = pgTable('scheduled_announcements', {
   enabled: boolean('enabled').notNull().default(true),
 })
 
-export type LobbyRow = typeof lobbies.$inferSelect
-export type LobbyMemberRow = typeof lobbyMembers.$inferSelect
 export type MatchRow = typeof matches.$inferSelect
 export type SeatRow = typeof seats.$inferSelect
 export type AnnouncementRow = typeof scheduledAnnouncements.$inferSelect

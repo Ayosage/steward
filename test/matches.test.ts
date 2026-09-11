@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { matches } from '../src/db/schema.js'
+import { matches, seats } from '../src/db/schema.js'
 import { GameLaunchError, type createGameMatch } from '../src/game-client.js'
 import { getGame } from '../src/games.js'
 import { launchMatch } from '../src/matches.js'
@@ -18,21 +18,27 @@ describe('newToken', () => {
 })
 
 describe('launchMatch', () => {
-  it('calls the game with a minted callback and persists the row after 201', async () => {
+  it('calls the game with a minted callback and the host seat, and persists both rows after 201', async () => {
     const db = await testDb()
     const createMatch = vi.fn<typeof createGameMatch>(async () => LAUNCHED)
-    const row = await launchMatch({
+    const { match: row, hostSeat, personalUrl } = await launchMatch({
       db, game: getGame('catan')!, players: 4, bots: 1,
-      guildId: 'g1', channelId: 'c1', createdByDiscordId: 'u1',
+      guildId: 'g1', channelId: 'c1', host: { id: 'u1', displayName: 'Ayo' },
       publicBaseUrl: 'http://steward.example', createMatch,
     })
     const body = createMatch.mock.calls[0]![1]
     expect(body.callback.url).toBe('http://steward.example/webhooks/results')
     expect(body.callback.token).toMatch(/^cb_/)
+    expect(body.host).toEqual({ seatToken: expect.stringMatching(/^st_/), displayName: 'Ayo' })
     expect(row.code).toBe('ABCD')
     expect(row.status).toBe('pending')
+    expect(row.createdByDiscordId).toBe('u1')
     expect(row.callbackToken).toBe(body.callback.token)
     expect(row.expiresAt).toEqual(new Date(LAUNCHED.expiresAt))
+    expect(hostSeat.discordUserId).toBe('u1')
+    expect(hostSeat.seatToken).toBe(body.host!.seatToken)
+    expect(personalUrl).toBe(`http://play.example/?join=ABCD&seat=${hostSeat.seatToken}`)
+    expect(await db.select().from(seats)).toHaveLength(1)
   })
 
   it('leaves no row when the game launch fails', async () => {
@@ -43,10 +49,11 @@ describe('launchMatch', () => {
     await expect(
       launchMatch({
         db, game: getGame('catan')!, players: 4, bots: 0,
-        guildId: 'g1', channelId: 'c1', createdByDiscordId: 'u1',
+        guildId: 'g1', channelId: 'c1', host: { id: 'u1', displayName: 'Ayo' },
         publicBaseUrl: 'http://steward.example', createMatch,
       }),
     ).rejects.toThrow(GameLaunchError)
     expect(await db.select().from(matches)).toHaveLength(0)
+    expect(await db.select().from(seats)).toHaveLength(0)
   })
 })

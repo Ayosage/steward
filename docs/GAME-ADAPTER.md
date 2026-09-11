@@ -13,10 +13,18 @@ Authorization: Bearer <per-game LAUNCH_TOKEN>
 {
   "players": 4,
   "bots": 0,
+  "host": { "seatToken": "st_...", "displayName": "Ayo" },          // v1.1: the invoker
   "seats": [{ "seatToken": "st_...", "displayName": "Alice" }],   // optional
   "callback": { "url": "https://<steward>/webhooks/results", "token": "cb_..." }
 }
 ```
+
+`host` (v1.1) is the invoker's seat, minted before the launch: the game
+reserves its host seat (seat 0) for whoever arrives with that token, even if
+another player opens their link first. Steward sends default counts
+(`players` = the game's default, `bots` = 0); the host sets the real table
+size, bots, and the start from the game's own lobby. Steward keeps no lobby
+of its own.
 
 Response unchanged from v0: `201` with `{ code, joinUrl, expiresAt }`;
 errors `401` / `422` / `503`. `callback` is minted per match: a random

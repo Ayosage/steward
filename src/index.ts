@@ -3,7 +3,6 @@ import { Client, Events, GatewayIntentBits, MessageFlags } from 'discord.js'
 import { commands } from './commands/index.js'
 import { getDb } from './db/index.js'
 import { handleJoinButton, isJoinButton } from './interactions/join.js'
-import { handleLobbyButton, handleLobbyHostSelect, isLobbyButton, isLobbyHostSelect } from './interactions/lobby.js'
 import { handleRoleSelect, isRoleSelect } from './interactions/roles.js'
 import { makeResultPoster } from './result-poster.js'
 import { registerCommands } from './register-commands.js'
@@ -37,10 +36,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await commands.get(interaction.commandName)?.autocomplete?.(interaction)
     } else if (interaction.isButton() && isJoinButton(interaction.customId)) {
       await handleJoinButton(interaction)
-    } else if (interaction.isButton() && isLobbyButton(interaction.customId)) {
-      await handleLobbyButton(interaction)
-    } else if (interaction.isStringSelectMenu() && isLobbyHostSelect(interaction.customId)) {
-      await handleLobbyHostSelect(interaction)
     } else if (interaction.isStringSelectMenu() && isRoleSelect(interaction.customId)) {
       await handleRoleSelect(interaction)
     }

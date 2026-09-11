@@ -1,19 +1,8 @@
 import { and, eq, lt, lte } from 'drizzle-orm'
 import type { Db } from './db/index.js'
-import { gameRoles, lobbies, matches, scheduledAnnouncements } from './db/schema.js'
+import { gameRoles, matches, scheduledAnnouncements } from './db/schema.js'
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const LOBBY_TTL_MS = 2 * 60 * 60 * 1000
-
-/** Open lobbies idle past the TTL → expired (host wandered off without starting). */
-export async function sweepStaleLobbies(db: Db, now: Date = new Date()): Promise<number> {
-  const stale = await db
-    .update(lobbies)
-    .set({ status: 'expired' })
-    .where(and(eq(lobbies.status, 'open'), lt(lobbies.createdAt, new Date(now.getTime() - LOBBY_TTL_MS))))
-    .returning({ id: lobbies.id })
-  return stale.length
-}
 
 /**
  * Pending past expiry → expired (nobody joined). Active >24h past expiry → expired
@@ -74,7 +63,6 @@ export async function fireDueAnnouncements(deps: AnnounceDeps): Promise<number> 
 export function startScheduler(deps: AnnounceDeps, intervalMs = 30_000): () => void {
   const tick = (): void => {
     sweepExpiredMatches(deps.db).catch((e) => console.error('[sweep] failed:', e))
-    sweepStaleLobbies(deps.db).catch((e) => console.error('[lobby sweep] failed:', e))
     fireDueAnnouncements(deps).catch((e) => console.error('[gamenight] sweep failed:', e))
   }
   const timer = setInterval(tick, intervalMs)
