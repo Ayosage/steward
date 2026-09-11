@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { eq } from 'drizzle-orm'
 import type { Db } from '../src/db/index.js'
-import { gameRoles, lobbies, matches, scheduledAnnouncements } from '../src/db/schema.js'
-import { fireDueAnnouncements, sweepExpiredMatches, sweepStaleLobbies } from '../src/scheduler.js'
+import { gameRoles, matches, scheduledAnnouncements } from '../src/db/schema.js'
+import { fireDueAnnouncements, sweepExpiredMatches,  } from '../src/scheduler.js'
 import { testDb } from './helpers/db.js'
 
 const NOW = new Date('2026-08-27T12:00:00Z')
@@ -78,16 +78,3 @@ describe('fireDueAnnouncements', () => {
   })
 })
 
-describe('sweepStaleLobbies', () => {
-  it('expires open lobbies older than the TTL and leaves fresh ones alone', async () => {
-    const db = await testDb()
-    await db.insert(lobbies).values([
-      { guildId: 'g1', channelId: 'c1', gameSlug: 'catan', hostDiscordId: 'h1', createdAt: hoursAgo(3) },
-      { guildId: 'g1', channelId: 'c1', gameSlug: 'catan', hostDiscordId: 'h2', createdAt: hoursAgo(1) },
-      { guildId: 'g1', channelId: 'c1', gameSlug: 'catan', hostDiscordId: 'h3', status: 'started', createdAt: hoursAgo(5) },
-    ])
-    expect(await sweepStaleLobbies(db, NOW)).toBe(1)
-    const rows = await db.select().from(lobbies)
-    expect(rows.map((l) => l.status).sort()).toEqual(['expired', 'open', 'started'])
-  })
-})

@@ -12,6 +12,8 @@ export interface LaunchBody {
   players: number
   bots: number
   callback: LaunchCallback
+  /** The invoker's seat: the game reserves seat 0 (host) for whoever arrives with this token. */
+  host?: { seatToken: string; displayName?: string }
 }
 
 export interface LaunchedMatch {

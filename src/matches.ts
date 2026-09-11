@@ -12,36 +12,57 @@ export interface LaunchMatchArgs {
   bots: number
   guildId: string
   channelId: string
-  createdByDiscordId: string
+  /** The invoker. Their seat is minted before the launch so the game can reserve seat 0 for it. */
+  host: { id: string; displayName: string }
   publicBaseUrl: string
   createMatch?: typeof createGameMatch
 }
 
-/** Launch via the game adapter; the match row exists only after the game's 201. */
-export async function launchMatch(args: LaunchMatchArgs): Promise<MatchRow> {
+export interface LaunchedMatch {
+  match: MatchRow
+  hostSeat: SeatRow
+  /** The host's personal join link (joinUrl + their seat token). */
+  personalUrl: string
+}
+
+/** Launch via the game adapter; the match and host-seat rows exist only after the game's 201. */
+export async function launchMatch(args: LaunchMatchArgs): Promise<LaunchedMatch> {
   const create = args.createMatch ?? createGameMatch
   const callbackToken = newToken('cb')
+  const hostSeatToken = newToken('st')
   const launched = await create(args.game, {
     players: args.players,
     bots: args.bots,
     callback: { url: `${args.publicBaseUrl}/webhooks/results`, token: callbackToken },
+    host: { seatToken: hostSeatToken, displayName: args.host.displayName },
   })
-  const [row] = await args.db
-    .insert(matches)
-    .values({
-      guildId: args.guildId,
-      channelId: args.channelId,
-      gameSlug: args.game.slug,
-      code: launched.code,
-      joinUrl: launched.joinUrl,
-      callbackToken,
-      createdByDiscordId: args.createdByDiscordId,
-      players: args.players,
-      bots: args.bots,
-      expiresAt: new Date(launched.expiresAt),
-    })
-    .returning()
-  return row!
+  return args.db.transaction(async (tx) => {
+    const [match] = await tx
+      .insert(matches)
+      .values({
+        guildId: args.guildId,
+        channelId: args.channelId,
+        gameSlug: args.game.slug,
+        code: launched.code,
+        joinUrl: launched.joinUrl,
+        callbackToken,
+        createdByDiscordId: args.host.id,
+        players: args.players,
+        bots: args.bots,
+        expiresAt: new Date(launched.expiresAt),
+      })
+      .returning()
+    const [hostSeat] = await tx
+      .insert(seats)
+      .values({
+        matchId: match!.id,
+        seatToken: hostSeatToken,
+        discordUserId: args.host.id,
+        displayName: args.host.displayName,
+      })
+      .returning()
+    return { match: match!, hostSeat: hostSeat!, personalUrl: personalJoinUrl(match!.joinUrl, hostSeatToken) }
+  })
 }
 
 export class MatchClosedError extends Error {}
