@@ -30,7 +30,15 @@ explicit.
 
 ## 2. Database
 
-Option A, Fly Postgres (same private network, no TLS config needed):
+Option A, Neon (free plan, no card; this is what production uses, project
+`steward` in `aws-us-east-1`, created with `neonctl projects create`):
+
+```bash
+neonctl connection-string --project-id <id> --pooled   # add ?sslmode=require if absent
+fly secrets set --app steward-bot DATABASE_URL='<that string>'
+```
+
+Option B, Fly Postgres (about $2/month extra; same private network, no TLS config needed):
 
 ```bash
 fly postgres create --name steward-db --region ewr --vm-size shared-cpu-1x --initial-cluster-size 1
@@ -39,8 +47,8 @@ fly postgres attach steward-db --app steward-bot
 
 `attach` sets `DATABASE_URL` as a secret on the app automatically.
 
-Option B, Neon / Supabase / any hosted Postgres: create a database, copy its
-connection string (Neon: use the pooled URL with `?sslmode=require`), then:
+Option C, Supabase / any hosted Postgres: create a database, copy its
+connection string (pooled, with `?sslmode=require`), then:
 
 ```bash
 fly secrets set --app steward-bot DATABASE_URL='postgres://user:pass@host/steward?sslmode=require'
@@ -71,8 +79,14 @@ Leave `DISCORD_GUILD_ID` unset in production (see section 6).
 ## 4. Deploy
 
 ```bash
-fly deploy
+fly deploy --ha=false
 ```
+
+`--ha=false` matters: without it the first deploy creates a second machine
+"for high availability", and two copies of a gateway bot both answer every
+interaction (duplicate replies, a doubled scheduler) and double the bill.
+If a second machine ever appears (`fly status`), remove it with
+`fly scale count 1 --app steward-bot -y`.
 
 Watch the first boot:
 
