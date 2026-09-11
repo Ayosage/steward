@@ -45,6 +45,12 @@ Env vars (see `.env.example`): `DISCORD_TOKEN`, `DISCORD_APP_ID`,
 Note: `/roles setup` needs the bot to have Manage Roles and its own role
 positioned **above** the game roles it creates, or role toggling will fail.
 
+## Deploy
+
+Fly.io: `docs/DEPLOY.md` covers the app, database, secrets, invite link and
+the automatic slash-command registration. `npm run build && npm start` runs
+the compiled bot the way the container does (after `npm run migrate`).
+
 ## Tests
 
 ```bash
