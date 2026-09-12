@@ -33,16 +33,19 @@ describe('/roles setup', () => {
     const db = await testDb()
     const i = fakeSetupInteraction()
     await rolesCommand.execute(i as never, { db })
-    expect(i.created).toEqual(['CATAN (Meridian)'])
+    expect(i.created).toEqual(['CATAN (Meridian)', 'Wordy Champions'])
     const rows = await db.select().from(gameRoles)
-    expect(rows).toEqual([{ guildId: 'g1', gameSlug: 'catan', roleId: 'r-CATAN (Meridian)' }])
+    expect(rows).toEqual([
+      { guildId: 'g1', gameSlug: 'catan', roleId: 'r-CATAN (Meridian)' },
+      { guildId: 'g1', gameSlug: 'wordy', roleId: 'r-Wordy Champions' },
+    ])
     const reply = JSON.stringify(i.reply.mock.calls[0]![0])
     expect(reply).toContain('roles:pick')
   })
 
   it('reuses an existing role with the game name', async () => {
     const db = await testDb()
-    const i = fakeSetupInteraction({ 'CATAN (Meridian)': 'r-existing' })
+    const i = fakeSetupInteraction({ 'CATAN (Meridian)': 'r-existing', 'Wordy Champions': 'r-wordy' })
     await rolesCommand.execute(i as never, { db })
     expect(i.created).toEqual([])
     const rows = await db.select().from(gameRoles)

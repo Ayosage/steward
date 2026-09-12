@@ -13,8 +13,9 @@ Any game implementing the adapter contract can join the library:
 ## Commands
 
 Playing:
-- `/play game:<slug> players:<n> bots:<n>` — generic launcher (autocompleted registry)
-- `/catan players:<3-8> bots:<0-7>` — alias for `/play game:catan`
+- `/play game:<slug>` — generic launcher (autocompleted registry); the host sets players and bots in the game's web lobby
+- `/catan` — alias for `/play game:catan` (CATAN on Meridian)
+- `/wordy` — alias for `/play game:wordy` (Wordy Champions, PvP Wordle for 2 to 8)
 - **Join button** — ephemeral personal seat link (mints or reuses your seat)
 - `/games` — the library: name, player range, role mention if configured
 
@@ -40,7 +41,7 @@ npm run dev
 Env vars (see `.env.example`): `DISCORD_TOKEN`, `DISCORD_APP_ID`,
 `DISCORD_GUILD_ID` (optional), `DATABASE_URL`, `WEBHOOK_PORT`,
 `PUBLIC_BASE_URL`, plus per-game launch settings (`MERIDIAN_API_URL`,
-`MERIDIAN_LAUNCH_TOKEN`).
+`MERIDIAN_LAUNCH_TOKEN`, `WORDY_API_URL`, `WORDY_LAUNCH_TOKEN`).
 
 Note: `/roles setup` needs the bot to have Manage Roles and its own role
 positioned **above** the game roles it creates, or role toggling will fail.

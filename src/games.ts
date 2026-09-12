@@ -21,6 +21,16 @@ export const games: readonly GameDef[] = [
     maxBots: 7,
     defaultPlayers: 4,
   },
+  {
+    slug: 'wordy',
+    name: 'Wordy Champions',
+    launchUrl: process.env.WORDY_API_URL ?? 'http://localhost:8788',
+    tokenEnvVar: 'WORDY_LAUNCH_TOKEN',
+    minPlayers: 2,
+    maxPlayers: 8,
+    maxBots: 0,
+    defaultPlayers: 4,
+  },
 ]
 
 export function getGame(slug: string): GameDef | undefined {
