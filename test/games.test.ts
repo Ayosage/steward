@@ -10,6 +10,11 @@ describe('game registry', () => {
     expect(getGame('nope')).toBeUndefined()
   })
 
+  it('lists wordy with no bots and a 2 to 8 table', () => {
+    expect(getGame('wordy')).toMatchObject({ slug: 'wordy', minPlayers: 2, maxPlayers: 8, maxBots: 0, defaultPlayers: 4, tokenEnvVar: 'WORDY_LAUNCH_TOKEN' })
+    expect(validateLaunch(getGame('wordy')!, 4, 1)).toBe('bots must be 0..0')
+  })
+
   it('validates player and bot bounds', () => {
     const catan = getGame('catan')!
     expect(validateLaunch(catan, 4, 0)).toBeNull()

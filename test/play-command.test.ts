@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { matches, seats } from '../src/db/schema.js'
 import { catanCommand } from '../src/commands/catan.js'
+import { wordyCommand } from '../src/commands/wordy.js'
 import { playCommand, type PlayDeps } from '../src/commands/play.js'
 import { GameLaunchError } from '../src/game-client.js'
 import { launchMatch } from '../src/matches.js'
@@ -89,5 +90,15 @@ describe('/catan alias', () => {
     await catanCommand.execute(i as never, deps(db))
     const [match] = await db.select().from(matches)
     expect(match!.gameSlug).toBe('catan')
+  })
+})
+
+describe('/wordy alias', () => {
+  it('launches a wordy match through the same path', async () => {
+    const db = await testDb()
+    const i = fakeInteraction({})
+    await wordyCommand.execute(i as never, deps(db))
+    const [match] = await db.select().from(matches)
+    expect(match).toMatchObject({ gameSlug: 'wordy', players: 4, bots: 0 })
   })
 })

@@ -11,6 +11,7 @@ import { leaderboardCommand } from './leaderboard.js'
 import { playCommand } from './play.js'
 import { rolesCommand } from './roles.js'
 import { statsCommand } from './stats.js'
+import { wordyCommand } from './wordy.js'
 
 export interface Command {
   data: { name: string; toJSON(): RESTPostAPIChatInputApplicationCommandsJSONBody }
@@ -23,6 +24,7 @@ export const commands: ReadonlyMap<string, Command> = new Map<string, Command>(
   [
     playCommand,
     catanCommand,
+    wordyCommand,
     gamesCommand,
     statsCommand,
     leaderboardCommand,
