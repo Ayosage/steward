@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -11,24 +12,33 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-export const matches = pgTable('matches', {
-  id: serial('id').primaryKey(),
-  guildId: text('guild_id').notNull(),
-  channelId: text('channel_id').notNull(), // result embed target (launch channel)
-  gameSlug: text('game_slug').notNull(),
-  code: text('code').notNull(),
-  joinUrl: text('join_url').notNull(),
-  callbackToken: text('callback_token').notNull().unique(),
-  status: text('status', { enum: ['pending', 'active', 'completed', 'abandoned', 'expired'] })
-    .notNull()
-    .default('pending'),
-  createdByDiscordId: text('created_by_discord_id').notNull(),
-  players: integer('players').notNull(),
-  bots: integer('bots').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  expiresAt: timestamp('expires_at', { withTimezone: true }),
-  finishedAt: timestamp('finished_at', { withTimezone: true }),
-})
+export const matches = pgTable(
+  'matches',
+  {
+    id: serial('id').primaryKey(),
+    guildId: text('guild_id').notNull(),
+    channelId: text('channel_id').notNull(), // result embed target (launch channel)
+    gameSlug: text('game_slug').notNull(),
+    code: text('code').notNull(),
+    joinUrl: text('join_url').notNull(),
+    callbackToken: text('callback_token').notNull().unique(),
+    status: text('status', { enum: ['pending', 'active', 'completed', 'abandoned', 'expired'] })
+      .notNull()
+      .default('pending'),
+    createdByDiscordId: text('created_by_discord_id').notNull(),
+    players: integer('players').notNull(),
+    bots: integer('bots').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+  },
+  (t) => [
+    // Result callbacks look a match up by code on every POST. Not unique: codes come
+    // from each game server independently, so two games can mint the same one, and
+    // processResult already disambiguates the candidates by callback token.
+    index('matches_code_idx').on(t.code),
+  ],
+)
 
 export const seats = pgTable(
   'seats',

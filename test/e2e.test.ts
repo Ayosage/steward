@@ -54,7 +54,7 @@ describe('end to end', () => {
 
     // 3. The game reports the result to the webhook Steward handed it
     const onResult = vi.fn(async () => undefined)
-    server = createWebhookServer({ db, onResult })
+    server = createWebhookServer({ db, onResult, isGatewayReady: () => true })
     await new Promise<void>((r) => server!.listen(0, r))
     const port = (server.address() as AddressInfo).port
     const res = await fetch(`http://127.0.0.1:${port}/webhooks/results`, {

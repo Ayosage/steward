@@ -49,7 +49,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 })
 
-const webhook = createWebhookServer({ db, onResult: makeResultPoster(client, db) })
+const webhook = createWebhookServer({
+  db,
+  onResult: makeResultPoster(client, db),
+  isGatewayReady: () => client.isReady(),
+})
 const port = Number(process.env.WEBHOOK_PORT ?? 8787)
 webhook.listen(port, () => console.log(`result webhooks on :${port}`))
 
