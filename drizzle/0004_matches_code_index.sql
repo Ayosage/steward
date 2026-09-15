@@ -1,0 +1,1 @@
+CREATE INDEX "matches_code_idx" ON "matches" USING btree ("code");

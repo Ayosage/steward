@@ -1,8 +1,19 @@
+import { sql } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 import { matches, seats } from '../src/db/schema.js'
 import { testDb } from './helpers/db.js'
 
 describe('db schema', () => {
+  it('indexes matches.code, which every result callback looks up', async () => {
+    const db = await testDb()
+    const { rows } = await db.execute(
+      sql`select indexname from pg_indexes where tablename = 'matches' and indexname = 'matches_code_idx'`,
+    )
+    expect(rows).toHaveLength(1)
+    const plan = await db.execute(sql`explain select * from matches where code = 'ABCD'`)
+    expect(JSON.stringify(plan.rows)).not.toContain('Seq Scan')
+  })
+
   it('inserts and reads a match with a seat; status defaults to pending', async () => {
     const db = await testDb()
     const [m] = await db
