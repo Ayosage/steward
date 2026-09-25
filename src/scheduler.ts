@@ -1,4 +1,4 @@
-import { and, eq, lt, lte } from 'drizzle-orm'
+import { and, asc, eq, lt, lte } from 'drizzle-orm'
 import type { Db } from './db/index.js'
 import { gameRoles, matches, scheduledAnnouncements } from './db/schema.js'
 
@@ -59,13 +59,109 @@ export async function fireDueAnnouncements(deps: AnnounceDeps): Promise<number> 
   return fired
 }
 
-/** Poll loop; each job is isolated so one bad row can't stall the rest. Returns a stop function. */
-export function startScheduler(deps: AnnounceDeps, intervalMs = 30_000): () => void {
-  const tick = (): void => {
-    sweepExpiredMatches(deps.db).catch((e) => console.error('[sweep] failed:', e))
-    fireDueAnnouncements(deps).catch((e) => console.error('[gamenight] sweep failed:', e))
+export interface SchedulerOptions {
+  /** Upper bound between database reads when nothing is due. Every read wakes Neon for ~5 min. */
+  rescanMs?: number
+  /** Delay before trying again after a failed tick (database down, mid-suspend, etc.). */
+  retryMs?: number
+  /** Timer source; tests inject a fake so nothing depends on wall-clock time. */
+  timers?: Timers
+}
+
+export interface Timers {
+  set: (fn: () => void, ms: number) => unknown
+  clear: (handle: unknown) => void
+}
+
+const realTimers: Timers = {
+  set: (fn, ms) => {
+    const t = setTimeout(fn, ms)
+    t.unref()
+    return t
+  },
+  clear: (handle) => clearTimeout(handle as NodeJS.Timeout),
+}
+
+export interface SchedulerHandle {
+  stop: () => void
+  /** Re-read the schedule now; call after an announcement is created or cancelled. */
+  wake: () => void
+}
+
+const SIX_HOURS_MS = 6 * 60 * 60 * 1000
+
+/**
+ * Wake-on-demand, not a poll: one read learns the earliest `nextRunAt`, one timer sleeps
+ * until then, and the expired-match sweep piggybacks on that wake. A 30 s poll kept the
+ * Neon compute (5 min autosuspend) awake around the clock and burned the free tier.
+ */
+export function startScheduler(deps: AnnounceDeps, opts: SchedulerOptions = {}): SchedulerHandle {
+  const rescanMs = opts.rescanMs ?? SIX_HOURS_MS
+  const retryMs = opts.retryMs ?? 60_000
+  const timers = opts.timers ?? realTimers
+  let timer: unknown
+  let stopped = false
+  let running = false
+  let wakeRequested = false
+
+  const arm = (delayMs: number): void => {
+    if (stopped) return
+    timers.clear(timer)
+    timer = timers.set(tick, Math.max(0, Math.min(delayMs, rescanMs)))
   }
-  const timer = setInterval(tick, intervalMs)
-  timer.unref()
-  return () => clearInterval(timer)
+
+  const nextDelay = async (): Promise<number> => {
+    const now = deps.now?.() ?? new Date()
+    const [next] = await deps.db
+      .select({ at: scheduledAnnouncements.nextRunAt })
+      .from(scheduledAnnouncements)
+      .where(eq(scheduledAnnouncements.enabled, true))
+      .orderBy(asc(scheduledAnnouncements.nextRunAt))
+      .limit(1)
+    return next ? next.at.getTime() - now.getTime() : rescanMs
+  }
+
+  const tick = (): void => {
+    if (stopped || running) return
+    running = true
+    wakeRequested = false
+    void (async () => {
+      try {
+        await sweepExpiredMatches(deps.db, deps.now?.() ?? new Date())
+        await fireDueAnnouncements(deps)
+        arm(await nextDelay())
+      } catch (e) {
+        console.error('[scheduler] tick failed, retrying:', e)
+        arm(retryMs)
+      } finally {
+        running = false
+        if (wakeRequested) tick()
+      }
+    })()
+  }
+
+  const wake = (): void => {
+    if (stopped) return
+    if (running) {
+      wakeRequested = true
+      return
+    }
+    arm(0)
+  }
+
+  const stop = (): void => {
+    stopped = true
+    timers.clear(timer)
+  }
+
+  active = { stop, wake }
+  arm(0)
+  return active
+}
+
+let active: SchedulerHandle | undefined
+
+/** Nudges the running scheduler from a command default-deps path, if one is running. */
+export function wakeScheduler(): void {
+  active?.wake()
 }

@@ -106,9 +106,23 @@ registered 8 command(s) (global)
 Then confirm the health check from outside:
 
 ```bash
-curl https://steward-bot.fly.dev/healthz     # {"ok":true}
+curl https://steward-bot.fly.dev/healthz     # {"ok":true,"db":"ok","discord":"ok"}
 fly status --app steward-bot                 # one machine, state "started", checks passing
 ```
+
+`db` is the outcome of the last real query, not a probe. The health check never
+touches the database, and the scheduler sleeps until the next announcement
+(rescanning at most every 6 h), so an idle bot lets Neon suspend after its
+5 minute timeout. Confirm it is actually sleeping a day after a deploy:
+
+```bash
+neonctl api /projects/<project-id>/endpoints | grep -E 'current_state|last_active'
+# "current_state": "idle" most of the day; active_time on the project should barely move
+```
+
+A `select 1` on a timer, a metrics scraper, or anything polling the database
+brings the compute-hour burn back; before this change the bot polled every
+30 s and used ~95% of the month's compute hours while idle.
 
 ## 5. Invite the bot to a server
 

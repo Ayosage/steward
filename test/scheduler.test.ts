@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { eq } from 'drizzle-orm'
 import type { Db } from '../src/db/index.js'
 import { gameRoles, matches, scheduledAnnouncements } from '../src/db/schema.js'
-import { fireDueAnnouncements, sweepExpiredMatches,  } from '../src/scheduler.js'
+import { fireDueAnnouncements, startScheduler, sweepExpiredMatches } from '../src/scheduler.js'
 import { testDb } from './helpers/db.js'
 
 const NOW = new Date('2026-08-27T12:00:00Z')
@@ -78,3 +78,129 @@ describe('fireDueAnnouncements', () => {
   })
 })
 
+
+describe('startScheduler', () => {
+  /**
+   * A hand-cranked clock: the scheduler's timers land here, and `scheduled()` shows exactly
+   * what it armed. Real PGlite underneath, so no global timer faking.
+   */
+  function fakeClock(start: Date) {
+    let now = start.getTime()
+    let seq = 0
+    const pending = new Map<number, { at: number; fn: () => void }>()
+    const timers = {
+      set: (fn: () => void, ms: number) => {
+        const id = ++seq
+        pending.set(id, { at: now + ms, fn })
+        return id
+      },
+      clear: (handle: unknown) => {
+        pending.delete(handle as number)
+      },
+    }
+    return {
+      timers,
+      now: () => new Date(now),
+      /** Delays (ms from now) of every armed timer. */
+      scheduled: () => [...pending.values()].map((p) => p.at - now),
+      /** Move time forward, firing due timers in order and letting each tick finish. */
+      async advance(ms: number) {
+        const target = now + ms
+        for (;;) {
+          const due = [...pending.entries()].filter(([, p]) => p.at <= target).sort((a, b) => a[1].at - b[1].at)[0]
+          if (!due) break
+          now = due[1].at
+          pending.delete(due[0])
+          due[1].fn()
+          await new Promise((r) => setTimeout(r, 50))
+        }
+        now = target
+      },
+    }
+  }
+  const HOUR = 3600_000
+
+  it('arms one timer for the announcement\'s own nextRunAt and fires then, with nothing in between', async () => {
+    const db = await testDb()
+    await db.insert(scheduledAnnouncements).values({
+      guildId: 'g1', channelId: 'c1', gameSlug: null, message: 'Go', nextRunAt: hoursAgo(-2), intervalDays: 7,
+    })
+    const c = fakeClock(NOW)
+    const post = vi.fn(async () => undefined)
+    const s = startScheduler({ db, post, now: c.now }, { rescanMs: 6 * HOUR, timers: c.timers })
+    await c.advance(0) // startup tick
+    await vi.waitFor(() => expect(c.scheduled()).toEqual([2 * HOUR]))
+    expect(post).not.toHaveBeenCalled()
+    await c.advance(2 * HOUR)
+    await vi.waitFor(() => expect(post).toHaveBeenCalledWith('c1', 'Go'))
+    s.stop()
+  })
+
+  it('with nothing scheduled, arms only the rescan timer', async () => {
+    const db = await testDb()
+    const c = fakeClock(NOW)
+    const s = startScheduler({ db, post: vi.fn(async () => undefined), now: c.now }, { rescanMs: 6 * HOUR, timers: c.timers })
+    await c.advance(0)
+    await vi.waitFor(() => expect(c.scheduled()).toEqual([6 * HOUR]))
+    s.stop()
+  })
+
+  it('wake() re-reads so an announcement scheduled after start still fires on time', async () => {
+    const db = await testDb()
+    const c = fakeClock(NOW)
+    const post = vi.fn(async () => undefined)
+    const s = startScheduler({ db, post, now: c.now }, { rescanMs: 6 * HOUR, timers: c.timers })
+    await c.advance(0)
+    await vi.waitFor(() => expect(c.scheduled()).toEqual([6 * HOUR]))
+    await db.insert(scheduledAnnouncements).values({
+      guildId: 'g1', channelId: 'c1', gameSlug: null, message: 'Late', nextRunAt: hoursAgo(-1), intervalDays: 7,
+    })
+    s.wake()
+    await c.advance(0)
+    await vi.waitFor(() => expect(c.scheduled()).toEqual([HOUR]))
+    await c.advance(HOUR)
+    await vi.waitFor(() => expect(post).toHaveBeenCalledWith('c1', 'Late'))
+    s.stop()
+  })
+
+  it('sweeps expired matches when it wakes, so the sweep needs no timer of its own', async () => {
+    const db = await testDb()
+    const stale = await match(db, 'pending', hoursAgo(1))
+    const c = fakeClock(NOW)
+    const s = startScheduler({ db, post: vi.fn(async () => undefined), now: c.now }, { rescanMs: HOUR, timers: c.timers })
+    await c.advance(0)
+    await vi.waitFor(async () => {
+      const [row] = await db.select().from(matches).where(eq(matches.id, stale.id))
+      expect(row!.status).toBe('expired')
+    })
+    s.stop()
+  })
+
+  it('retries after retryMs when the database call fails instead of going silent', async () => {
+    const db = await testDb()
+    await db.insert(scheduledAnnouncements).values({
+      guildId: 'g1', channelId: 'c1', gameSlug: null, message: 'Go', nextRunAt: hoursAgo(1), intervalDays: 7,
+    })
+    let failing = true
+    const flaky = new Proxy(db, {
+      get(target, key, receiver) {
+        if (failing && (key === 'select' || key === 'update')) {
+          return () => {
+            throw new Error('connection terminated')
+          }
+        }
+        return Reflect.get(target, key, receiver)
+      },
+    })
+    const c = fakeClock(NOW)
+    const post = vi.fn(async () => undefined)
+    const s = startScheduler({ db: flaky, post, now: c.now }, { rescanMs: 6 * HOUR, retryMs: 60_000, timers: c.timers })
+    await c.advance(0)
+    await vi.waitFor(() => expect(c.scheduled()).toEqual([60_000]))
+    expect(post).not.toHaveBeenCalled()
+    failing = false
+    await c.advance(60_000)
+    await vi.waitFor(() => expect(post).toHaveBeenCalledWith('c1', 'Go'))
+    s.stop()
+  })
+})

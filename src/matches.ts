@@ -75,6 +75,16 @@ export function personalJoinUrl(joinUrl: string, seatToken: string): string {
   return u.toString()
 }
 
+const ACTIVE_GRACE_MS = 24 * 60 * 60 * 1000
+
+/** Same rule the sweep applies: pending dies at expiry, active gets 24h for a late webhook. */
+export function isExpired(match: Pick<MatchRow, 'status' | 'expiresAt'>, now: Date): boolean {
+  if (!match.expiresAt) return false
+  if (match.status === 'pending') return match.expiresAt.getTime() < now.getTime()
+  if (match.status === 'active') return match.expiresAt.getTime() + ACTIVE_GRACE_MS < now.getTime()
+  return false
+}
+
 export interface MintedSeat {
   seat: SeatRow
   personalUrl: string
@@ -85,8 +95,12 @@ export async function mintSeat(
   db: Db,
   match: MatchRow,
   user: { id: string; displayName: string },
+  now: Date = new Date(),
 ): Promise<MintedSeat> {
   if (match.status !== 'pending' && match.status !== 'active') throw new MatchClosedError('match is closed')
+  // Expiry is judged here, not left to the sweep: the sweep now runs only when the
+  // scheduler wakes, so a row can sit past its expiry for hours with status unchanged.
+  if (isExpired(match, now)) throw new MatchClosedError('match is closed')
   // Row-lock the match so concurrent Join clicks serialize; the partial unique
   // index on (match_id, discord_user_id) backstops the reuse check.
   return db.transaction(async (tx) => {
