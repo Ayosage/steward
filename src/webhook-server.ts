@@ -1,6 +1,6 @@
 import http from 'node:http'
 import { eq } from 'drizzle-orm'
-import type { Db } from './db/index.js'
+import type { Db, DbStatus } from './db/index.js'
 import { matches, type MatchRow, type SeatRow } from './db/schema.js'
 import { createHealthCheck, type HealthReport } from './health.js'
 import { createRateLimiter, type RateLimiter } from './rate-limit.js'
@@ -27,6 +27,8 @@ export interface WebhookDeps {
   onResult: (match: MatchRow, seats: SeatRow[]) => Promise<void>
   /** True only while the bot is connected to the Discord gateway. */
   isGatewayReady: () => boolean
+  /** Last observed query outcome for /healthz; defaults to `unknown` and is never probed. */
+  dbStatus?: () => DbStatus
   /** Overrides for tests; production uses the defaults. */
   rateLimit?: RateLimiter
   health?: () => Promise<HealthReport>
@@ -38,7 +40,8 @@ export function createWebhookServer(deps: WebhookDeps): http.Server {
   // result per match; anything near this ceiling is abuse. In-process is enough:
   // see the note in rate-limit.ts.
   const rateLimit = deps.rateLimit ?? createRateLimiter({ capacity: 30, refillPerMinute: 30 })
-  const health = deps.health ?? createHealthCheck({ db: deps.db, isGatewayReady: deps.isGatewayReady })
+  const health =
+    deps.health ?? createHealthCheck({ isGatewayReady: deps.isGatewayReady, dbStatus: deps.dbStatus ?? (() => 'unknown') })
   const maxBodyBytes = deps.maxBodyBytes ?? MAX_BODY_BYTES
   return http.createServer((req, res) => {
     handle(req, res, { deps, rateLimit, health, maxBodyBytes }).catch((e) => {

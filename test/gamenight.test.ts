@@ -44,3 +44,15 @@ describe('/gamenight', () => {
     expect(rows[0]!.enabled).toBe(false)
   })
 })
+
+describe('/gamenight wakes the scheduler', () => {
+  it('schedule and cancel both nudge the scheduler so the new time is picked up at once', async () => {
+    const db = await testDb()
+    const wake = vi.fn()
+    await gamenightCommand.execute(fakeInteraction('schedule', { message: 'Go', first_in_hours: 1 }) as never, { db, wake })
+    expect(wake).toHaveBeenCalledTimes(1)
+    const [row] = await db.select().from(scheduledAnnouncements)
+    await gamenightCommand.execute(fakeInteraction('cancel', { id: row!.id }) as never, { db, wake })
+    expect(wake).toHaveBeenCalledTimes(2)
+  })
+})

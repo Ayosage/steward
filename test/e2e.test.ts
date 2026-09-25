@@ -14,7 +14,8 @@ import { testDb } from './helpers/db.js'
 let server: http.Server | undefined
 afterEach(() => server?.close())
 
-const LAUNCHED = { code: 'ABCD', joinUrl: 'http://play.example/?join=ABCD', expiresAt: '2026-09-12T12:00:00.000Z' }
+// Expiry is relative: joins are refused at read time once a match is past it.
+const LAUNCHED = { code: 'ABCD', joinUrl: 'http://play.example/?join=ABCD', expiresAt: new Date(Date.now() + 3600_000).toISOString() }
 
 describe('end to end', () => {
   it('runs the full /play → join → result lifecycle against a mocked game', async () => {
