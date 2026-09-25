@@ -96,7 +96,7 @@ async function setup(
     db,
     onResult,
     isGatewayReady,
-    health: createHealthCheck({ db, isGatewayReady, cacheMs: 0, ...health }),
+    health: createHealthCheck({ isGatewayReady, dbStatus: () => 'ok', ...health }),
     ...over,
   })
   await new Promise<void>((r) => server!.listen(0, r))
@@ -128,13 +128,12 @@ describe('webhook server', () => {
   })
 
   it('answers GET /healthz with 503 and names what is down', async () => {
-    // Stubbed database: this asserts the wiring from report to status code, not Postgres.
-    const down = { execute: () => Promise.reject(new Error('connection refused')) } as unknown as Db
+    // This asserts the wiring from report to status code; the probe itself is tested in health.test.ts.
     server = createWebhookServer({
-      db: down,
+      db: await testDb(),
       onResult: async () => undefined,
       isGatewayReady: () => false,
-      health: createHealthCheck({ db: down, isGatewayReady: () => false, gatewayGraceMs: 0, cacheMs: 0 }),
+      health: createHealthCheck({ isGatewayReady: () => false, dbStatus: () => 'down', gatewayGraceMs: 0 }),
     })
     await new Promise<void>((r) => server!.listen(0, r))
     const res = await fetch(`http://127.0.0.1:${(server.address() as AddressInfo).port}/healthz`)
@@ -143,8 +142,15 @@ describe('webhook server', () => {
       ok: false,
       db: 'down',
       discord: 'down',
-      detail: 'database down; discord gateway down',
+      detail: 'database down (last query failed); discord gateway down',
     })
+  })
+
+  it('GET /healthz never queries the database', async () => {
+    const { base, calls } = await setup()
+    await fetch(`${base}/healthz`)
+    await fetch(`${base}/healthz`)
+    expect(calls).toEqual([])
   })
 
   it('persists, returns 200, then fires onResult best-effort', async () => {

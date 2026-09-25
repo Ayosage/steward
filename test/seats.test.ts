@@ -60,3 +60,27 @@ describe('mintSeat', () => {
     await expect(mintSeat(db, m, { id: 'u2', displayName: 'Alice' })).rejects.toThrow(MatchClosedError)
   })
 })
+
+describe('mintSeat expiry at read time', () => {
+  const NOW = new Date('2026-08-27T12:00:00Z')
+  const hoursAgo = (h: number) => new Date(NOW.getTime() - h * 3600_000)
+
+  it('refuses a pending match past its expiry even before any sweep has run', async () => {
+    const db = await testDb()
+    const m = await seedMatch(db, { expiresAt: hoursAgo(1) })
+    await expect(mintSeat(db, m, { id: 'u2', displayName: 'Alice' }, NOW)).rejects.toBeInstanceOf(MatchClosedError)
+  })
+
+  it('still seats an active match inside the 24h grace the sweep allows', async () => {
+    const db = await testDb()
+    const m = await seedMatch(db, { status: 'active', expiresAt: hoursAgo(2) })
+    const minted = await mintSeat(db, m, { id: 'u2', displayName: 'Alice' }, NOW)
+    expect(minted.reused).toBe(false)
+  })
+
+  it('refuses an active match more than 24h past expiry', async () => {
+    const db = await testDb()
+    const m = await seedMatch(db, { status: 'active', expiresAt: hoursAgo(25) })
+    await expect(mintSeat(db, m, { id: 'u2', displayName: 'Alice' }, NOW)).rejects.toBeInstanceOf(MatchClosedError)
+  })
+})

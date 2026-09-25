@@ -8,9 +8,12 @@ import {
 import { and, eq } from 'drizzle-orm'
 import { getDb, type Db } from '../db/index.js'
 import { scheduledAnnouncements } from '../db/schema.js'
+import { wakeScheduler } from '../scheduler.js'
 
 export interface GamenightDeps {
   db: Db
+  /** Tells the scheduler the timetable changed so it re-reads instead of waiting for its rescan. */
+  wake?: () => void
 }
 
 export const gamenightCommand = {
@@ -42,7 +45,7 @@ export const gamenightCommand = {
         .addIntegerOption((o) => o.setName('id').setDescription('Announcement id (see /gamenight list)').setRequired(true)),
     ),
 
-  async execute(interaction: ChatInputCommandInteraction, deps: GamenightDeps = { db: getDb() }): Promise<void> {
+  async execute(interaction: ChatInputCommandInteraction, deps: GamenightDeps = { db: getDb(), wake: wakeScheduler }): Promise<void> {
     if (!interaction.guildId) {
       await interaction.reply({ content: 'This command only works in a server.', flags: MessageFlags.Ephemeral })
       return
@@ -59,6 +62,7 @@ export const gamenightCommand = {
         .insert(scheduledAnnouncements)
         .values({ guildId: interaction.guildId, channelId: channel.id, gameSlug, message, nextRunAt, intervalDays: everyDays })
         .returning()
+      deps.wake?.()
       await interaction.reply({
         content: `Scheduled #${row!.id}: first post <t:${Math.floor(nextRunAt.getTime() / 1000)}:R>, then every ${everyDays} day${everyDays === 1 ? '' : 's'}.`,
         flags: MessageFlags.Ephemeral,
@@ -79,6 +83,7 @@ export const gamenightCommand = {
         .set({ enabled: false })
         .where(and(eq(scheduledAnnouncements.id, id), eq(scheduledAnnouncements.guildId, interaction.guildId)))
         .returning()
+      if (updated.length > 0) deps.wake?.()
       await interaction.reply({
         content: updated.length > 0 ? `Cancelled announcement #${id}.` : `No announcement #${id} in this server.`,
         flags: MessageFlags.Ephemeral,

@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { Client, Events, GatewayIntentBits, MessageFlags } from 'discord.js'
 import { commands } from './commands/index.js'
-import { getDb } from './db/index.js'
+import { getDb, getDbStatus } from './db/index.js'
 import { handleJoinButton, isJoinButton } from './interactions/join.js'
 import { handleRoleSelect, isRoleSelect } from './interactions/roles.js'
 import { makeResultPoster } from './result-poster.js'
@@ -53,10 +53,13 @@ const webhook = createWebhookServer({
   db,
   onResult: makeResultPoster(client, db),
   isGatewayReady: () => client.isReady(),
+  dbStatus: getDbStatus,
 })
 const port = Number(process.env.WEBHOOK_PORT ?? 8787)
 webhook.listen(port, () => console.log(`result webhooks on :${port}`))
 
+// Wake-on-demand: sleeps until the next announcement (rescanning every 6 h as a safety
+// net) so an idle bot leaves Neon idle too. /gamenight wakes it when the timetable changes.
 startScheduler({
   db,
   post: async (channelId, content) => {

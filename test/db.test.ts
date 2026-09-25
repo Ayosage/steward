@@ -52,3 +52,23 @@ describe('db schema', () => {
     await expect(db.insert(seats).values({ matchId: m!.id, seatToken: 'st_dup' })).rejects.toThrow()
   })
 })
+
+describe('trackQueries', () => {
+  it('reports unknown until a query runs, then the outcome of the most recent one', async () => {
+    const { trackQueries } = await import('../src/db/index.js')
+    let fail = false
+    const pool = {
+      query: (): Promise<unknown> => (fail ? Promise.reject(new Error('connection terminated')) : Promise.resolve({ rows: [] })),
+    }
+    const status = trackQueries(pool)
+    expect(status()).toBe('unknown')
+    await pool.query()
+    expect(status()).toBe('ok')
+    fail = true
+    await expect(pool.query()).rejects.toThrow('connection terminated')
+    expect(status()).toBe('down')
+    fail = false
+    await pool.query()
+    expect(status()).toBe('ok')
+  })
+})
